@@ -13,7 +13,7 @@ loglvl = os.getenv(ENV_LOG_LEVEL, LOG_LEVEL_DEFAULT)
 
 logger.setLevel(loglvl)
 
-def handler(ev, ctx):
+def lambda_handler(ev, ctx):
     res = "Handler finished!"
     logger.info('## ENVIRONMENT VARIABLES')
     logger.info(os.getenv('AWS_LAMBDA_LOG_GROUP_NAME', ENV_DEFAULT))
@@ -22,4 +22,5 @@ def handler(ev, ctx):
     logger.info('## EVENT')
     logger.info(ev)
     logger.info(res)
+
     return res
