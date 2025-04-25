@@ -1,0 +1,7 @@
+# the name of your lambda function
+# this value will be used to lookup up an existing lambda function
+name: my-lambda
+architecture: arm64
+runtime: provided.al2023
+handler: lambda_handler
+filename: bootstrap.zip
