@@ -1,0 +1,13 @@
+# used by AWS CodeBuild
+version: 0.2
+
+env:
+  shell: /bin/sh
+  
+phases:
+  install:
+    commands:
+      - chmod +x ./scripts/build.sh
+  build:
+    commands:
+      - ./scripts/build.sh
