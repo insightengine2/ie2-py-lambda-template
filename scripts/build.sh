@@ -1,13 +1,11 @@
 #!/bin/bash
-cd ..
 
 BUILDDIR="build"
-DEPSDIR="deps"
 FILENAME="bootstrap.zip"
 REQSFILENAME="requirements.txt"
 DISTDIR="dist"
-RUNTIMEARCH="manylinux2014_aarch64"
-PYTHONVER="3.13.3"
+PYTHONVER="3.14"
+VENVDIR=".venv"
 
 # remove remnants of previous builds
 if [ -d $BUILDDIR ]; then
@@ -24,52 +22,39 @@ fi
 
 mkdir $DISTDIR
 
+# create a virtual env dir and activate it
+$("python$PYTHONVER" -m venv ./$VENVDIR)
+
+source ./$VENVDIR/bin/activate
+
 # copy source code to build directory
 cp -r ./src ./$BUILDDIR
 
-cd $BUILDDIR
+cd ./$BUILDDIR
+
+# generate a requirements file
+pip3 freeze > $REQSFILENAME
+
+pip3 install -r $REQSFILENAME --target .
+
+# delete six.py which probably was created
+rm ./six.py
 
 # add source files to zip archive
 zip -r "../$DISTDIR/$FILENAME" "."
 
-# prepare a deps directory
-mkdir ./$DEPSDIR
-
-# install requirements generator tool
-pip install pipreqs
-
-# generate requirements.txt
-pipreqs . --force --ignore=tests
-
-# check if requirements file is empty first
-if [ -e $REQSFILENAME ] && [ ! -s $REQSFILENAME ]; then
-    echo "$REQSFILENAME exists AND is empty..."
-    echo "Skipping dependencies install."
-else
-    # install dependencies to deps directory
-    pip install --platform $RUNTIMEARCH --python-version $PYTHONVER --only-binary=:all: --target ./$DEPSDIR -r $REQSFILENAME
-
-    # check if any dependencies were downloaded
-    # find "./$DEPSDIR/" -maxdepth 0 -empty | read v
-    filecnt=$(ls -A "./$DEPSDIR" | wc -l)
-    echo "Found $filecnt files!"
-    if [ $filecnt -gt 0 ]; then
-        echo "Dependencies found. Updating archive..."
-        cd $DEPSDIR
-        zip -ur "../../$DISTDIR/$FILENAME" "."
-        cd ..
-    else
-        echo "No dependencies found in $DEPSDIR."
-    fi
-fi
+# deactivate the venv
+deactivate
 
 echo "Build Complete"
 
 cd ../$DISTDIR
 
 if [ -f "./$FILENAME" ]; then
-    filesize=$(wc --bytes "./$FILENAME")
-    echo "Wrote $filesize"
+  filesize=$(wc -c "./$FILENAME" | awk '{print $1}')
+  echo "Wrote $filesize bytes"
 else 
-    echo "...but unable to find $FILENAME!"
+  echo "...but unable to find $FILENAME!"
 fi
+
+cd ..
